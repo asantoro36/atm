@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.demo'
+version = '0.0.1-SNAPSHOT'
+description = 'atm-cli'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Valida sintaxis y API de Java 8 aunque Gradle corra con un JDK mas nuevo
+    options.release = 8
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+application {
+    mainClass = 'com.demo.atmcli.AtmCliApplication'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
