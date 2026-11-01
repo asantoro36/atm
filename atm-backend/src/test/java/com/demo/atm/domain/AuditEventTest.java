@@ -17,27 +17,28 @@ class AuditEventTest {
 
     @Test
     void success_whenCreated_thenReturnEventWithMaskedCardAndNoReason() {
-        AuditEvent event = AuditEvent.success(TRANSACTION_ID, DATE_TIME, CARD, ACCOUNT, AMOUNT);
+        AuditEvent event = AuditEvent.success(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME, CARD, ACCOUNT,
+                AMOUNT);
 
-        AuditEvent expected = new AuditEvent(TRANSACTION_ID, DATE_TIME, AuditEvent.WITHDRAWAL, AuditResult.SUCCESS,
+        AuditEvent expected = new AuditEvent(TRANSACTION_ID, DATE_TIME, OperationType.WITHDRAWAL, AuditResult.SUCCESS,
                 null, MASKED_CARD, ACCOUNT, "100.50");
         Assertions.assertEquals(expected, event);
     }
 
     @Test
     void rejected_whenAmountIsValid_thenReturnEventWithReasonAndAmount() {
-        AuditEvent event = AuditEvent.rejected(TRANSACTION_ID, DATE_TIME, RejectionReason.INSUFFICIENT_FUNDS, CARD,
-                ACCOUNT, AMOUNT);
+        AuditEvent event = AuditEvent.rejected(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME,
+                RejectionReason.INSUFFICIENT_FUNDS, CARD, ACCOUNT, AMOUNT);
 
-        AuditEvent expected = new AuditEvent(TRANSACTION_ID, DATE_TIME, AuditEvent.WITHDRAWAL, AuditResult.REJECTED,
+        AuditEvent expected = new AuditEvent(TRANSACTION_ID, DATE_TIME, OperationType.WITHDRAWAL, AuditResult.REJECTED,
                 RejectionReason.INSUFFICIENT_FUNDS, MASKED_CARD, ACCOUNT, "100.50");
         Assertions.assertEquals(expected, event);
     }
 
     @Test
     void rejected_whenAmountIsInvalid_thenReturnEventWithoutAmount() {
-        AuditEvent event = AuditEvent.rejected(TRANSACTION_ID, DATE_TIME, RejectionReason.INVALID_AMOUNT, CARD,
-                ACCOUNT, null);
+        AuditEvent event = AuditEvent.rejected(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME,
+                RejectionReason.INVALID_AMOUNT, CARD, ACCOUNT, null);
 
         Assertions.assertNull(event.amount());
     }

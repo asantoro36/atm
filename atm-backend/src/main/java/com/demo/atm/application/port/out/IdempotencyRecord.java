@@ -1,7 +1,7 @@
 package com.demo.atm.application.port.out;
 
-import com.demo.atm.application.port.in.WithdrawCommand;
-import com.demo.atm.domain.WithdrawalResult;
+import com.demo.atm.application.port.in.OperationCommand;
+import com.demo.atm.domain.OperationResult;
 
-public record IdempotencyRecord(WithdrawCommand command, WithdrawalResult result) {
+public record IdempotencyRecord(OperationCommand command, OperationResult result) {
 }

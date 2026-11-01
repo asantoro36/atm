@@ -8,5 +8,7 @@ public interface AccountRepository {
 
     Optional<Account> findByNumber(String number);
 
+    Optional<Account> findByCbu(String cbu);
+
     void save(Account account);
 }

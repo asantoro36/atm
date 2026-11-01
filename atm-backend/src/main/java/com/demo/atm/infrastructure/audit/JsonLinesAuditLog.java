@@ -41,7 +41,7 @@ public class JsonLinesAuditLog implements AuditLog {
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("transactionId", event.transactionId());
         fields.put("dateTime", event.dateTime().toString());
-        fields.put("type", event.type());
+        fields.put("type", event.type().name());
         fields.put("result", event.result().name());
         fields.put("reason", event.reason() == null ? EMPTY : event.reason().name());
         fields.put("card", event.card());

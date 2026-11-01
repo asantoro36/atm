@@ -15,9 +15,10 @@ import com.demo.atm.domain.Amount;
 import com.demo.atm.domain.AuditEvent;
 import com.demo.atm.domain.Card;
 import com.demo.atm.domain.CardAccount;
+import com.demo.atm.domain.OperationType;
 import com.demo.atm.domain.RejectionReason;
-import com.demo.atm.domain.WithdrawalResult;
-import com.demo.atm.domain.WithdrawalStatus;
+import com.demo.atm.domain.OperationResult;
+import com.demo.atm.domain.OperationStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,7 @@ class WithdrawServiceTest {
     private static final String KEY = "3f2b8c1e-6a4d-4e7b-9c15-8d2f0a7e4b61";
     private static final String CARD_NUMBER = "1111111111111111";
     private static final String ACCOUNT_NUMBER = "00001";
+    private static final String CBU = "0000000000000000000001";
     private static final String AMOUNT_TEXT = "100,50";
     private static final String INVALID_AMOUNT_TEXT = "abc";
     private static final String TRANSACTION_ID = "transaction-1";
@@ -59,15 +61,16 @@ class WithdrawServiceTest {
     private static final Amount AMOUNT = new Amount(new BigDecimal("100.50"));
     private static final Card ACTIVE_CARD = new Card(CARD_NUMBER, true);
     private static final Card INACTIVE_CARD = new Card(CARD_NUMBER, false);
-    private static final Account ACCOUNT = new Account(ACCOUNT_NUMBER, new BigDecimal("1000.00"));
-    private static final Account DEBITED_ACCOUNT = new Account(ACCOUNT_NUMBER, new BigDecimal("899.50"));
-    private static final Account POOR_ACCOUNT = new Account(ACCOUNT_NUMBER, new BigDecimal("100.49"));
+    private static final Account ACCOUNT = new Account(ACCOUNT_NUMBER, CBU, new BigDecimal("1000.00"));
+    private static final Account DEBITED_ACCOUNT = new Account(ACCOUNT_NUMBER, CBU, new BigDecimal("899.50"));
+    private static final Account POOR_ACCOUNT = new Account(ACCOUNT_NUMBER, CBU, new BigDecimal("100.49"));
     private static final CardAccount LINK = new CardAccount(CARD_NUMBER, ACCOUNT_NUMBER);
     private static final WithdrawCommand COMMAND = new WithdrawCommand(KEY, CARD_NUMBER, ACCOUNT_NUMBER, AMOUNT_TEXT);
     private static final WithdrawCommand INVALID_AMOUNT_COMMAND =
             new WithdrawCommand(KEY, CARD_NUMBER, ACCOUNT_NUMBER, INVALID_AMOUNT_TEXT);
     private static final AuditEvent SUCCESS_EVENT =
-            AuditEvent.success(TRANSACTION_ID, DATE_TIME, CARD_NUMBER, ACCOUNT_NUMBER, AMOUNT);
+            AuditEvent.success(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME, CARD_NUMBER, ACCOUNT_NUMBER,
+                    AMOUNT);
 
     @Mock
     private CardRepository cardRepository;
@@ -108,9 +111,9 @@ class WithdrawServiceTest {
 
     @Test
     void withdraw_whenOperationIsValid_thenReturnCompletedResult() {
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.COMPLETED, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.COMPLETED, TRANSACTION_ID), result);
     }
 
     @Test
@@ -131,7 +134,7 @@ class WithdrawServiceTest {
 
     @Test
     void withdraw_whenOperationIsValid_thenSaveIdempotencyRecord() {
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
         verify(idempotencyRepository).save(new IdempotencyRecord(COMMAND, result));
     }
@@ -147,21 +150,21 @@ class WithdrawServiceTest {
 
     @Test
     void withdraw_whenBalanceEqualsAmount_thenReturnCompletedResult() {
-        Account exactAccount = new Account(ACCOUNT_NUMBER, new BigDecimal("100.50"));
+        Account exactAccount = new Account(ACCOUNT_NUMBER, CBU, new BigDecimal("100.50"));
         when(accountRepository.findByNumber(ACCOUNT_NUMBER)).thenReturn(Optional.of(exactAccount));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(WithdrawalStatus.COMPLETED, result.status());
+        Assertions.assertEquals(OperationStatus.COMPLETED, result.status());
     }
 
     @Test
     void withdraw_whenCardDoesNotExist_thenReturnUnauthorized() {
         when(cardRepository.findByNumber(CARD_NUMBER)).thenReturn(Optional.empty());
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(WithdrawalStatus.UNAUTHORIZED, result.status());
+        Assertions.assertEquals(OperationStatus.UNAUTHORIZED, result.status());
     }
 
     @Test
@@ -186,9 +189,9 @@ class WithdrawServiceTest {
     void withdraw_whenAccountDoesNotExist_thenReturnUnauthorized() {
         when(accountRepository.findByNumber(ACCOUNT_NUMBER)).thenReturn(Optional.empty());
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(WithdrawalStatus.UNAUTHORIZED, result.status());
+        Assertions.assertEquals(OperationStatus.UNAUTHORIZED, result.status());
     }
 
     @Test
@@ -213,9 +216,9 @@ class WithdrawServiceTest {
     void withdraw_whenCardIsInactive_thenReturnUnauthorized() {
         when(cardRepository.findByNumber(CARD_NUMBER)).thenReturn(Optional.of(INACTIVE_CARD));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.UNAUTHORIZED, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.UNAUTHORIZED, TRANSACTION_ID), result);
     }
 
     @Test
@@ -231,9 +234,9 @@ class WithdrawServiceTest {
     void withdraw_whenCardIsNotLinked_thenReturnUnauthorized() {
         when(cardAccountRepository.exists(LINK)).thenReturn(false);
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.UNAUTHORIZED, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.UNAUTHORIZED, TRANSACTION_ID), result);
     }
 
     @Test
@@ -247,9 +250,9 @@ class WithdrawServiceTest {
 
     @Test
     void withdraw_whenAmountIsInvalid_thenReturnInvalidAmount() {
-        WithdrawalResult result = withdrawService.withdraw(INVALID_AMOUNT_COMMAND);
+        OperationResult result = withdrawService.withdraw(INVALID_AMOUNT_COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.INVALID_AMOUNT, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.INVALID_AMOUNT, TRANSACTION_ID), result);
     }
 
     @Test
@@ -272,9 +275,9 @@ class WithdrawServiceTest {
     void withdraw_whenBalanceIsInsufficient_thenReturnInsufficientFunds() {
         when(accountRepository.findByNumber(ACCOUNT_NUMBER)).thenReturn(Optional.of(POOR_ACCOUNT));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.INSUFFICIENT_FUNDS, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.INSUFFICIENT_FUNDS, TRANSACTION_ID), result);
     }
 
     @Test
@@ -299,24 +302,24 @@ class WithdrawServiceTest {
     void withdraw_whenOperationIsRejected_thenSaveIdempotencyRecord() {
         when(accountRepository.findByNumber(ACCOUNT_NUMBER)).thenReturn(Optional.of(POOR_ACCOUNT));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
         verify(idempotencyRepository).save(new IdempotencyRecord(COMMAND, result));
     }
 
     @Test
     void withdraw_whenKeyExistsWithSameData_thenReturnStoredResult() {
-        WithdrawalResult stored = new WithdrawalResult(WithdrawalStatus.COMPLETED, STORED_TRANSACTION_ID);
+        OperationResult stored = new OperationResult(OperationStatus.COMPLETED, STORED_TRANSACTION_ID);
         when(idempotencyRepository.findByKey(KEY)).thenReturn(Optional.of(new IdempotencyRecord(COMMAND, stored)));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
         Assertions.assertEquals(stored, result);
     }
 
     @Test
     void withdraw_whenKeyExistsWithSameData_thenDoNotDebit() {
-        WithdrawalResult stored = new WithdrawalResult(WithdrawalStatus.COMPLETED, STORED_TRANSACTION_ID);
+        OperationResult stored = new OperationResult(OperationStatus.COMPLETED, STORED_TRANSACTION_ID);
         when(idempotencyRepository.findByKey(KEY)).thenReturn(Optional.of(new IdempotencyRecord(COMMAND, stored)));
 
         withdrawService.withdraw(COMMAND);
@@ -326,7 +329,7 @@ class WithdrawServiceTest {
 
     @Test
     void withdraw_whenKeyExistsWithSameData_thenDoNotRecordEvent() {
-        WithdrawalResult stored = new WithdrawalResult(WithdrawalStatus.COMPLETED, STORED_TRANSACTION_ID);
+        OperationResult stored = new OperationResult(OperationStatus.COMPLETED, STORED_TRANSACTION_ID);
         when(idempotencyRepository.findByKey(KEY)).thenReturn(Optional.of(new IdempotencyRecord(COMMAND, stored)));
 
         withdrawService.withdraw(COMMAND);
@@ -338,9 +341,9 @@ class WithdrawServiceTest {
     void withdraw_whenKeyExistsWithOtherData_thenReturnConflict() {
         when(idempotencyRepository.findByKey(KEY)).thenReturn(Optional.of(otherCommandRecord()));
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(new WithdrawalResult(WithdrawalStatus.CONFLICT, TRANSACTION_ID), result);
+        Assertions.assertEquals(new OperationResult(OperationStatus.CONFLICT, TRANSACTION_ID), result);
     }
 
     @Test
@@ -400,9 +403,9 @@ class WithdrawServiceTest {
         when(accountRepository.findByNumber(ACCOUNT_NUMBER)).thenReturn(Optional.of(POOR_ACCOUNT));
         doThrow(auditFailure()).when(auditLog).record(any());
 
-        WithdrawalResult result = withdrawService.withdraw(COMMAND);
+        OperationResult result = withdrawService.withdraw(COMMAND);
 
-        Assertions.assertEquals(WithdrawalStatus.INSUFFICIENT_FUNDS, result.status());
+        Assertions.assertEquals(OperationStatus.INSUFFICIENT_FUNDS, result.status());
     }
 
     @Test
@@ -413,12 +416,13 @@ class WithdrawServiceTest {
     }
 
     private AuditEvent rejectedEvent(RejectionReason reason, Amount amount) {
-        return AuditEvent.rejected(TRANSACTION_ID, DATE_TIME, reason, CARD_NUMBER, ACCOUNT_NUMBER, amount);
+        return AuditEvent.rejected(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME, reason, CARD_NUMBER,
+                ACCOUNT_NUMBER, amount);
     }
 
     private IdempotencyRecord otherCommandRecord() {
         WithdrawCommand other = new WithdrawCommand(KEY, CARD_NUMBER, ACCOUNT_NUMBER, "1,00");
-        return new IdempotencyRecord(other, new WithdrawalResult(WithdrawalStatus.COMPLETED, STORED_TRANSACTION_ID));
+        return new IdempotencyRecord(other, new OperationResult(OperationStatus.COMPLETED, STORED_TRANSACTION_ID));
     }
 
     private AuditWriteException auditFailure() {

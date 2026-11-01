@@ -1,6 +1,6 @@
 package com.demo.atm.domain;
 
-public enum WithdrawalStatus {
+public enum OperationStatus {
     COMPLETED,
     UNAUTHORIZED,
     INVALID_AMOUNT,

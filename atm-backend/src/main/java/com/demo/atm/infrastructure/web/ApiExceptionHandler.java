@@ -11,7 +11,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tools.jackson.core.exc.StreamReadException;
 
-@RestControllerAdvice(assignableTypes = {LoginController.class, WithdrawalController.class})
+@RestControllerAdvice(assignableTypes = {LoginController.class, WithdrawalController.class, DepositController.class})
 public class ApiExceptionHandler {
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})

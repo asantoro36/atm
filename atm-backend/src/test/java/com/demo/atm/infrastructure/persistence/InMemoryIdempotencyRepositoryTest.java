@@ -2,8 +2,8 @@ package com.demo.atm.infrastructure.persistence;
 
 import com.demo.atm.application.port.in.WithdrawCommand;
 import com.demo.atm.application.port.out.IdempotencyRecord;
-import com.demo.atm.domain.WithdrawalResult;
-import com.demo.atm.domain.WithdrawalStatus;
+import com.demo.atm.domain.OperationResult;
+import com.demo.atm.domain.OperationStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class InMemoryIdempotencyRepositoryTest {
     @Test
     void findByKey_whenRecordWasSaved_thenReturnRecord() {
         WithdrawCommand command = new WithdrawCommand(KEY, "1111111111111111", "00001", "100,50");
-        WithdrawalResult result = new WithdrawalResult(WithdrawalStatus.COMPLETED, "transaction-1");
+        OperationResult result = new OperationResult(OperationStatus.COMPLETED, "transaction-1");
         IdempotencyRecord saved = new IdempotencyRecord(command, result);
         repository.save(saved);
 

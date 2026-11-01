@@ -1,99 +1,32 @@
 package com.demo.atm;
 
-import com.demo.atm.application.port.out.AccountRepository;
-import com.demo.atm.application.port.out.AuditLog;
-import com.demo.atm.application.port.out.AuditWriteException;
-import com.demo.atm.application.port.out.CardRepository;
-import com.demo.atm.domain.Account;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(OutputCaptureExtension.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class WithdrawalIT {
+class WithdrawalIT extends OperationITSupport {
 
-    private static final String KEY = "3f2b8c1e-6a4d-4e7b-9c15-8d2f0a7e4b61";
-    private static final String OTHER_KEY = "7d1e4a90-2c3b-4f56-8a71-1b9c0d3e5f22";
-    private static final String CARD = "1111111111111111";
-    private static final String INACTIVE_CARD = "2222222222222222";
-    private static final String UNKNOWN_CARD = "3333333333333333";
     private static final String ACCOUNT = "00001";
     private static final String EMPTY_ACCOUNT = "00002";
     private static final String OTHER_CARD_ACCOUNT = "00003";
     private static final String UNKNOWN_ACCOUNT = "99999";
     private static final String VALID_BODY = body(CARD, "100,50");
-    private static final String TRANSACTION_ID_FIELD = "\"transactionId\":\"";
-
-    @TempDir
-    private static Path directory;
-
-    private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ExecutorService executor = Executors.newFixedThreadPool(2);
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private AccountRepository accountRepository;
-
-    @MockitoSpyBean
-    private CardRepository cardRepository;
-
-    @MockitoSpyBean
-    private AuditLog auditLog;
-
-    @DynamicPropertySource
-    static void auditFile(DynamicPropertyRegistry registry) {
-        registry.add("atm.audit.file", () -> auditFilePath().toString());
-    }
-
-    @BeforeEach
-    void cleanAuditFile() throws IOException {
-        Files.deleteIfExists(auditFilePath());
-    }
-
-    @AfterEach
-    void stopExecutor() {
-        executor.shutdownNow();
-    }
 
     @Test
     void withdraw_whenOperationIsValid_thenReturn201WithTransactionId() throws Exception {
@@ -262,11 +195,7 @@ class WithdrawalIT {
 
     @Test
     void withdraw_whenKeyIsAbsent_thenReturn400WithoutEvent() throws Exception {
-        HttpRequest request = requestBuilder(ACCOUNT)
-                .POST(HttpRequest.BodyPublishers.ofString(VALID_BODY))
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = postWithoutKey(pathOf(ACCOUNT), VALID_BODY);
 
         Assertions.assertEquals(400, response.statusCode());
         Assertions.assertFalse(Files.exists(auditFilePath()));
@@ -429,7 +358,7 @@ class WithdrawalIT {
         HttpResponse<String> response = post(EMPTY_ACCOUNT, KEY, VALID_BODY);
 
         Assertions.assertEquals(422, response.statusCode());
-        Assertions.assertTrue(output.getAll().contains("Rejected withdrawal could not be audited"));
+        Assertions.assertTrue(output.getAll().contains("Rejected operation could not be audited"));
     }
 
     @Test
@@ -492,30 +421,8 @@ class WithdrawalIT {
         return "{\"card\":\"" + card + "\",\"amount\":\"" + amount + "\"}";
     }
 
-    private static Path auditFilePath() {
-        return directory.resolve("transactions.log");
-    }
-
-    private List<String> auditLines() throws IOException {
-        return Files.readAllLines(auditFilePath());
-    }
-
-    private BigDecimal balanceOf(String account) {
-        Optional<Account> found = accountRepository.findByNumber(account);
-        return found.orElseThrow().balance();
-    }
-
-    private String transactionIdOf(String json) {
-        int start = json.indexOf(TRANSACTION_ID_FIELD) + TRANSACTION_ID_FIELD.length();
-        return json.substring(start, json.indexOf('"', start));
-    }
-
-    private AuditWriteException auditFailure() {
-        return new AuditWriteException(new IOException("disk failure"));
-    }
-
-    private HttpResponse<String> result(Future<HttpResponse<String>> future) throws Exception {
-        return future.get(10, TimeUnit.SECONDS);
+    private static String pathOf(String account) {
+        return "/api/accounts/" + account + "/withdrawals";
     }
 
     private Callable<HttpResponse<String>> postAfter(CountDownLatch start, String key, String body) {
@@ -527,16 +434,6 @@ class WithdrawalIT {
 
     private HttpResponse<String> post(String account, String key, String body)
             throws IOException, InterruptedException {
-        HttpRequest request = requestBuilder(account)
-                .header("Idempotency-Key", key)
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    }
-
-    private HttpRequest.Builder requestBuilder(String account) {
-        return HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + "/api/accounts/" + account + "/withdrawals"))
-                .header("Content-Type", "application/json");
+        return postTo(pathOf(account), key, body);
     }
 }

@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 class AccountTest {
 
     private static final String NUMBER = "00001";
-    private static final Account ACCOUNT = new Account(NUMBER, new BigDecimal("100.00"));
+    private static final String CBU = "0000000000000000000001";
+    private static final Account ACCOUNT = new Account(NUMBER, CBU, new BigDecimal("100.00"));
 
     @Test
     void hasBalanceFor_whenBalanceIsGreaterThanAmount_thenReturnTrue() {
@@ -35,14 +36,14 @@ class AccountTest {
     void withdraw_whenBalanceIsSufficient_thenReturnAccountWithDebitedBalance() {
         Account result = ACCOUNT.withdraw(new Amount(new BigDecimal("30.50")));
 
-        Assertions.assertEquals(new Account(NUMBER, new BigDecimal("69.50")), result);
+        Assertions.assertEquals(new Account(NUMBER, CBU, new BigDecimal("69.50")), result);
     }
 
     @Test
     void withdraw_whenBalanceEqualsAmount_thenReturnAccountWithZeroBalance() {
         Account result = ACCOUNT.withdraw(new Amount(new BigDecimal("100.00")));
 
-        Assertions.assertEquals(new Account(NUMBER, new BigDecimal("0.00")), result);
+        Assertions.assertEquals(new Account(NUMBER, CBU, new BigDecimal("0.00")), result);
     }
 
     @Test
@@ -50,5 +51,21 @@ class AccountTest {
         Amount amount = new Amount(new BigDecimal("100.01"));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> ACCOUNT.withdraw(amount));
+    }
+
+    @Test
+    void deposit_whenCalled_thenReturnAccountWithCreditedBalance() {
+        Account result = ACCOUNT.deposit(new Amount(new BigDecimal("30.50")));
+
+        Assertions.assertEquals(new Account(NUMBER, CBU, new BigDecimal("130.50")), result);
+    }
+
+    @Test
+    void deposit_whenBalanceIsZero_thenReturnAccountWithAmountAsBalance() {
+        Account empty = new Account(NUMBER, CBU, new BigDecimal("0.00"));
+
+        Account result = empty.deposit(new Amount(new BigDecimal("30.50")));
+
+        Assertions.assertEquals(new Account(NUMBER, CBU, new BigDecimal("30.50")), result);
     }
 }

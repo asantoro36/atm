@@ -5,7 +5,7 @@ import java.time.OffsetDateTime;
 public record AuditEvent(
         String transactionId,
         OffsetDateTime dateTime,
-        String type,
+        OperationType type,
         AuditResult result,
         RejectionReason reason,
         String card,
@@ -13,21 +13,19 @@ public record AuditEvent(
         String amount
 ) {
 
-    public static final String WITHDRAWAL = "WITHDRAWAL";
-
     private static final String CARD_MASK = "************";
     private static final int VISIBLE_CARD_DIGITS = 4;
 
-    public static AuditEvent success(String transactionId, OffsetDateTime dateTime, String card, String account,
-                                     Amount amount) {
-        return new AuditEvent(transactionId, dateTime, WITHDRAWAL, AuditResult.SUCCESS, null, mask(card), account,
+    public static AuditEvent success(OperationType type, String transactionId, OffsetDateTime dateTime, String card,
+                                     String account, Amount amount) {
+        return new AuditEvent(transactionId, dateTime, type, AuditResult.SUCCESS, null, mask(card), account,
                 amount.value().toPlainString());
     }
 
-    public static AuditEvent rejected(String transactionId, OffsetDateTime dateTime, RejectionReason reason,
-                                      String card, String account, Amount amount) {
+    public static AuditEvent rejected(OperationType type, String transactionId, OffsetDateTime dateTime,
+                                      RejectionReason reason, String card, String account, Amount amount) {
         String amountText = amount == null ? null : amount.value().toPlainString();
-        return new AuditEvent(transactionId, dateTime, WITHDRAWAL, AuditResult.REJECTED, reason, mask(card), account,
+        return new AuditEvent(transactionId, dateTime, type, AuditResult.REJECTED, reason, mask(card), account,
                 amountText);
     }
 

@@ -1,5 +1,6 @@
 package com.demo.atm.infrastructure.config;
 
+import com.demo.atm.application.port.in.DepositUseCase;
 import com.demo.atm.application.port.in.LoginUseCase;
 import com.demo.atm.application.port.in.WithdrawUseCase;
 import com.demo.atm.application.port.out.AccountRepository;
@@ -9,6 +10,7 @@ import com.demo.atm.application.port.out.CardRepository;
 import com.demo.atm.application.port.out.IdempotencyRepository;
 import com.demo.atm.application.port.out.KeyedLock;
 import com.demo.atm.application.port.out.TransactionIdGenerator;
+import com.demo.atm.application.service.DepositService;
 import com.demo.atm.application.service.LoginService;
 import com.demo.atm.application.service.WithdrawService;
 import com.demo.atm.infrastructure.audit.JsonLinesAuditLog;
@@ -84,5 +86,17 @@ public class BeanConfiguration {
                                            Clock clock) {
         return new WithdrawService(cardRepository, accountRepository, cardAccountRepository, idempotencyRepository,
                 auditLog, keyedLock, transactionIdGenerator, clock);
+    }
+
+    @Bean
+    public DepositUseCase depositUseCase(CardRepository cardRepository,
+                                         AccountRepository accountRepository,
+                                         IdempotencyRepository idempotencyRepository,
+                                         AuditLog auditLog,
+                                         KeyedLock keyedLock,
+                                         TransactionIdGenerator transactionIdGenerator,
+                                         Clock clock) {
+        return new DepositService(cardRepository, accountRepository, idempotencyRepository, auditLog, keyedLock,
+                transactionIdGenerator, clock);
     }
 }
