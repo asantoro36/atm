@@ -2,5 +2,6 @@ package com.demo.atm.domain;
 
 public enum OperationType {
     WITHDRAWAL,
-    DEPOSIT
+    DEPOSIT,
+    BALANCE_INQUIRY
 }

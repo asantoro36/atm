@@ -19,14 +19,17 @@ public record AuditEvent(
     public static AuditEvent success(OperationType type, String transactionId, OffsetDateTime dateTime, String card,
                                      String account, Amount amount) {
         return new AuditEvent(transactionId, dateTime, type, AuditResult.SUCCESS, null, mask(card), account,
-                amount.value().toPlainString());
+                text(amount));
     }
 
     public static AuditEvent rejected(OperationType type, String transactionId, OffsetDateTime dateTime,
                                       RejectionReason reason, String card, String account, Amount amount) {
-        String amountText = amount == null ? null : amount.value().toPlainString();
         return new AuditEvent(transactionId, dateTime, type, AuditResult.REJECTED, reason, mask(card), account,
-                amountText);
+                text(amount));
+    }
+
+    private static String text(Amount amount) {
+        return amount == null ? null : amount.value().toPlainString();
     }
 
     private static String mask(String card) {

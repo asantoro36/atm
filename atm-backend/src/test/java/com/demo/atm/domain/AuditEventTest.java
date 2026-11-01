@@ -26,6 +26,14 @@ class AuditEventTest {
     }
 
     @Test
+    void success_whenAmountIsAbsent_thenReturnEventWithoutAmount() {
+        AuditEvent event = AuditEvent.success(OperationType.BALANCE_INQUIRY, TRANSACTION_ID, DATE_TIME, CARD, ACCOUNT,
+                null);
+
+        Assertions.assertNull(event.amount());
+    }
+
+    @Test
     void rejected_whenAmountIsValid_thenReturnEventWithReasonAndAmount() {
         AuditEvent event = AuditEvent.rejected(OperationType.WITHDRAWAL, TRANSACTION_ID, DATE_TIME,
                 RejectionReason.INSUFFICIENT_FUNDS, CARD, ACCOUNT, AMOUNT);
