@@ -10,10 +10,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.demo.atmcli.model.RestWithdrawalClient;
-import com.demo.atmcli.model.RetryingWithdrawalClient;
+import com.demo.atmcli.model.RetryingOperationClient;
 import com.demo.atmcli.model.ThreadWaiter;
-import com.demo.atmcli.model.WithdrawalClient;
-import com.demo.atmcli.model.WithdrawalResult;
+import com.demo.atmcli.model.OperationClient;
+import com.demo.atmcli.model.OperationResult;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -37,14 +37,14 @@ class WithdrawalIT {
 
     private WireMockServer server;
     private RestWithdrawalClient client;
-    private WithdrawalClient retryingClient;
+    private OperationClient retryingClient;
 
     @BeforeEach
     void startServer() {
         server = new WireMockServer(options().dynamicPort());
         server.start();
         client = new RestWithdrawalClient("http://localhost:" + server.port(), TIMEOUT_MILLIS);
-        retryingClient = new RetryingWithdrawalClient(client, new ThreadWaiter(), MAX_RETRIES, 0);
+        retryingClient = new RetryingOperationClient(client, new ThreadWaiter(), MAX_RETRIES, 0);
     }
 
     @AfterEach
@@ -69,10 +69,10 @@ class WithdrawalIT {
             "404,SERVICE_UNAVAILABLE",
             "503,SERVICE_UNAVAILABLE"
     })
-    void withdraw_whenBackendReturnsStatus_thenReturnResult(int status, WithdrawalResult expected) {
+    void withdraw_whenBackendReturnsStatus_thenReturnResult(int status, OperationResult expected) {
         stubStatus(status);
 
-        WithdrawalResult result = client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
         assertEquals(expected, result);
     }
@@ -81,9 +81,9 @@ class WithdrawalIT {
     void withdraw_whenBackendIsUnavailable_thenReturnUnconfirmed() {
         server.stop();
 
-        WithdrawalResult result = client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
-        assertEquals(WithdrawalResult.UNCONFIRMED, result);
+        assertEquals(OperationResult.UNCONFIRMED, result);
     }
 
     @Test
@@ -91,25 +91,25 @@ class WithdrawalIT {
         server.stubFor(post(urlEqualTo(PATH))
                 .willReturn(aResponse().withStatus(201).withFixedDelay(TIMEOUT_MILLIS * 5)));
 
-        WithdrawalResult result = client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
-        assertEquals(WithdrawalResult.UNCONFIRMED, result);
+        assertEquals(OperationResult.UNCONFIRMED, result);
     }
 
     @Test
     void withdraw_whenConnectionIsDropped_thenReturnUnconfirmed() {
         server.stubFor(post(urlEqualTo(PATH)).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
-        WithdrawalResult result = client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
-        assertEquals(WithdrawalResult.UNCONFIRMED, result);
+        assertEquals(OperationResult.UNCONFIRMED, result);
     }
 
     @Test
     void withdraw_whenConnectionIsDropped_thenSendOneRequest() {
         server.stubFor(post(urlEqualTo(PATH)).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
-        client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
         server.verify(1, postRequestedFor(urlEqualTo(PATH)));
     }
@@ -118,7 +118,7 @@ class WithdrawalIT {
     void withdraw_whenCalled_thenSendKeyAndJsonBody() {
         stubStatus(201);
 
-        client.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        client.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
         server.verify(postRequestedFor(urlEqualTo(PATH))
                 .withHeader("Content-Type", equalTo("application/json"))
@@ -130,7 +130,7 @@ class WithdrawalIT {
     void withdraw_whenValuesHaveQuotes_thenSendValidJson() {
         stubStatus(401);
 
-        client.withdraw(KEY, "1111\"", ACCOUNT, "1\"0");
+        client.execute(KEY, "1111\"", ACCOUNT, "1\"0");
 
         server.verify(postRequestedFor(urlEqualTo(PATH))
                 .withRequestBody(equalToJson("{\"card\":\"1111\\\"\",\"amount\":\"1\\\"0\"}")));
@@ -146,9 +146,9 @@ class WithdrawalIT {
                 .whenScenarioStateIs(RESPONDING)
                 .willReturn(aResponse().withStatus(201)));
 
-        WithdrawalResult result = retryingClient.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = retryingClient.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
-        assertEquals(WithdrawalResult.COMPLETED, result);
+        assertEquals(OperationResult.COMPLETED, result);
         server.verify(2, postRequestedFor(urlEqualTo(PATH)).withHeader("Idempotency-Key", equalTo(KEY)));
     }
 
@@ -156,9 +156,9 @@ class WithdrawalIT {
     void withdraw_whenBackendNeverResponds_thenSendFourAttempts() {
         server.stubFor(post(urlEqualTo(PATH)).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
-        WithdrawalResult result = retryingClient.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        OperationResult result = retryingClient.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
-        assertEquals(WithdrawalResult.UNCONFIRMED, result);
+        assertEquals(OperationResult.UNCONFIRMED, result);
         server.verify(4, postRequestedFor(urlEqualTo(PATH)).withHeader("Idempotency-Key", equalTo(KEY)));
     }
 
@@ -166,7 +166,7 @@ class WithdrawalIT {
     void withdraw_whenBackendReturnsError_thenDoNotRetry() {
         stubStatus(500);
 
-        retryingClient.withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        retryingClient.execute(KEY, CARD, ACCOUNT, AMOUNT);
 
         server.verify(1, postRequestedFor(urlEqualTo(PATH)));
     }

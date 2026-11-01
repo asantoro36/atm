@@ -8,14 +8,14 @@ import static org.mockito.Mockito.when;
 
 import com.demo.atmcli.model.IdempotencyKeyGenerator;
 import com.demo.atmcli.model.LoginClient;
-import com.demo.atmcli.model.WithdrawalClient;
-import com.demo.atmcli.model.WithdrawalResult;
+import com.demo.atmcli.model.OperationClient;
+import com.demo.atmcli.model.OperationResult;
 import com.demo.atmcli.view.AtmView;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,23 +37,30 @@ class AtmPresenterWithdrawalTest {
     private LoginClient loginClient;
 
     @Mock
-    private WithdrawalClient withdrawalClient;
+    private OperationClient withdrawalClient;
 
     @Mock
     private IdempotencyKeyGenerator keyGenerator;
 
-    @InjectMocks
+    @Mock
+    private OperationClient depositClient;
+
     private AtmPresenter presenter;
 
-    private void givenResult(WithdrawalResult result) {
+    @BeforeEach
+    void setUp() {
+        presenter = new AtmPresenter(view, loginClient, withdrawalClient, depositClient, keyGenerator);
+    }
+
+    private void givenResult(OperationResult result) {
         when(view.readCommand()).thenReturn(COMMAND, EXIT);
         when(keyGenerator.generate()).thenReturn(KEY);
-        when(withdrawalClient.withdraw(KEY, CARD, ACCOUNT, AMOUNT)).thenReturn(result);
+        when(withdrawalClient.execute(KEY, CARD, ACCOUNT, AMOUNT)).thenReturn(result);
     }
 
     @Test
     void run_whenWithdrawalIsCompleted_thenShowWithdrawalSuccess() {
-        givenResult(WithdrawalResult.COMPLETED);
+        givenResult(OperationResult.COMPLETED);
 
         presenter.run();
 
@@ -62,7 +69,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenWithdrawalIsRejected_thenShowOperationRejected() {
-        givenResult(WithdrawalResult.REJECTED);
+        givenResult(OperationResult.REJECTED);
 
         presenter.run();
 
@@ -71,7 +78,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenAmountIsInvalid_thenShowInvalidAmount() {
-        givenResult(WithdrawalResult.INVALID_AMOUNT);
+        givenResult(OperationResult.INVALID_AMOUNT);
 
         presenter.run();
 
@@ -80,7 +87,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenFundsAreInsufficient_thenShowInsufficientFunds() {
-        givenResult(WithdrawalResult.INSUFFICIENT_FUNDS);
+        givenResult(OperationResult.INSUFFICIENT_FUNDS);
 
         presenter.run();
 
@@ -89,7 +96,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenServiceIsUnavailable_thenShowServiceUnavailable() {
-        givenResult(WithdrawalResult.SERVICE_UNAVAILABLE);
+        givenResult(OperationResult.SERVICE_UNAVAILABLE);
 
         presenter.run();
 
@@ -98,7 +105,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenWithdrawalIsUnconfirmed_thenShowOperationUnconfirmed() {
-        givenResult(WithdrawalResult.UNCONFIRMED);
+        givenResult(OperationResult.UNCONFIRMED);
 
         presenter.run();
 
@@ -107,7 +114,7 @@ class AtmPresenterWithdrawalTest {
 
     @Test
     void run_whenWithdrawalFinishes_thenShowMenuAgain() {
-        givenResult(WithdrawalResult.COMPLETED);
+        givenResult(OperationResult.COMPLETED);
 
         presenter.run();
 
@@ -118,22 +125,22 @@ class AtmPresenterWithdrawalTest {
     void run_whenWithdrawalHasExtraSpaces_thenWithdrawWithArguments() {
         when(view.readCommand()).thenReturn("  atm  extraer   " + CARD + "  " + ACCOUNT + "   " + AMOUNT + "  ", EXIT);
         when(keyGenerator.generate()).thenReturn(KEY);
-        when(withdrawalClient.withdraw(KEY, CARD, ACCOUNT, AMOUNT)).thenReturn(WithdrawalResult.COMPLETED);
+        when(withdrawalClient.execute(KEY, CARD, ACCOUNT, AMOUNT)).thenReturn(OperationResult.COMPLETED);
 
         presenter.run();
 
-        verify(withdrawalClient).withdraw(KEY, CARD, ACCOUNT, AMOUNT);
+        verify(withdrawalClient).execute(KEY, CARD, ACCOUNT, AMOUNT);
     }
 
     @Test
     void run_whenCardAndAmountHaveInvalidFormat_thenWithdrawWithUnmodifiedValues() {
         when(view.readCommand()).thenReturn("atm extraer 12a\"4 " + ACCOUNT + " 1.000", EXIT);
         when(keyGenerator.generate()).thenReturn(KEY);
-        when(withdrawalClient.withdraw(KEY, "12a\"4", ACCOUNT, "1.000")).thenReturn(WithdrawalResult.REJECTED);
+        when(withdrawalClient.execute(KEY, "12a\"4", ACCOUNT, "1.000")).thenReturn(OperationResult.REJECTED);
 
         presenter.run();
 
-        verify(withdrawalClient).withdraw(KEY, "12a\"4", ACCOUNT, "1.000");
+        verify(withdrawalClient).execute(KEY, "12a\"4", ACCOUNT, "1.000");
     }
 
     @ParameterizedTest
@@ -153,7 +160,7 @@ class AtmPresenterWithdrawalTest {
 
         presenter.run();
 
-        verify(withdrawalClient, never()).withdraw(anyString(), anyString(), anyString(), anyString());
+        verify(withdrawalClient, never()).execute(anyString(), anyString(), anyString(), anyString());
     }
 
     @ParameterizedTest
@@ -168,19 +175,19 @@ class AtmPresenterWithdrawalTest {
 
         presenter.run();
 
-        verify(withdrawalClient, never()).withdraw(anyString(), anyString(), anyString(), anyString());
+        verify(withdrawalClient, never()).execute(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
     void run_whenSameCommandIsEnteredTwice_thenUseDifferentKeys() {
         when(view.readCommand()).thenReturn(COMMAND, COMMAND, EXIT);
         when(keyGenerator.generate()).thenReturn(KEY, OTHER_KEY);
-        when(withdrawalClient.withdraw(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(WithdrawalResult.COMPLETED);
+        when(withdrawalClient.execute(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(OperationResult.COMPLETED);
 
         presenter.run();
 
-        verify(withdrawalClient).withdraw(KEY, CARD, ACCOUNT, AMOUNT);
-        verify(withdrawalClient).withdraw(OTHER_KEY, CARD, ACCOUNT, AMOUNT);
+        verify(withdrawalClient).execute(KEY, CARD, ACCOUNT, AMOUNT);
+        verify(withdrawalClient).execute(OTHER_KEY, CARD, ACCOUNT, AMOUNT);
     }
 }

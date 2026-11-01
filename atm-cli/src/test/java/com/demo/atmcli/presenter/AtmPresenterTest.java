@@ -163,13 +163,9 @@ class AtmPresenterTest {
         verify(view, times(2)).showMenu();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "atm depositar 1111111111111111 456 100",
-            "atm saldo 1111111111111111 123"
-    })
-    void run_whenOperationIsNotImplemented_thenShowOperationUnavailable(String command) {
-        when(view.readCommand()).thenReturn(command, EXIT);
+    @Test
+    void run_whenOperationIsNotImplemented_thenShowOperationUnavailable() {
+        when(view.readCommand()).thenReturn("atm saldo 1111111111111111 123", EXIT);
 
         presenter.run();
 

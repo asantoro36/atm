@@ -1,6 +1,6 @@
 package com.demo.atmcli.model;
 
-public enum WithdrawalResult {
+public enum OperationResult {
     COMPLETED,
     REJECTED,
     INVALID_AMOUNT,

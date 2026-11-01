@@ -25,4 +25,8 @@ public interface AtmView {
     void showServiceUnavailable();
 
     void showOperationUnconfirmed();
+
+    void showDepositSuccess();
+
+    void showDepositUnconfirmed();
 }

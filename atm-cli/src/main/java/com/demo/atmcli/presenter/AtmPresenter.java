@@ -2,8 +2,8 @@ package com.demo.atmcli.presenter;
 
 import com.demo.atmcli.model.IdempotencyKeyGenerator;
 import com.demo.atmcli.model.LoginClient;
-import com.demo.atmcli.model.WithdrawalClient;
-import com.demo.atmcli.model.WithdrawalResult;
+import com.demo.atmcli.model.OperationClient;
+import com.demo.atmcli.model.OperationResult;
 import com.demo.atmcli.view.AtmView;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,24 +17,27 @@ public final class AtmPresenter {
     private static final int LOGIN_WORDS = 3;
     private static final String WITHDRAWAL = "extraer";
     private static final int WITHDRAWAL_WORDS = 5;
+    private static final String DEPOSIT = "depositar";
+    private static final int DEPOSIT_WORDS = 5;
     private static final Pattern ACCOUNT_FORMAT = Pattern.compile("[0-9]{5}");
     private static final Map<String, Integer> UNAVAILABLE_OPERATION_WORDS = new HashMap<>();
 
     static {
-        UNAVAILABLE_OPERATION_WORDS.put("depositar", 5);
         UNAVAILABLE_OPERATION_WORDS.put("saldo", 4);
     }
 
     private final AtmView view;
     private final LoginClient loginClient;
-    private final WithdrawalClient withdrawalClient;
+    private final OperationClient withdrawalClient;
+    private final OperationClient depositClient;
     private final IdempotencyKeyGenerator keyGenerator;
 
-    public AtmPresenter(AtmView view, LoginClient loginClient, WithdrawalClient withdrawalClient,
-                        IdempotencyKeyGenerator keyGenerator) {
+    public AtmPresenter(AtmView view, LoginClient loginClient, OperationClient withdrawalClient,
+                        OperationClient depositClient, IdempotencyKeyGenerator keyGenerator) {
         this.view = view;
         this.loginClient = loginClient;
         this.withdrawalClient = withdrawalClient;
+        this.depositClient = depositClient;
         this.keyGenerator = keyGenerator;
     }
 
@@ -53,6 +56,8 @@ public final class AtmPresenter {
             login(words[2]);
         } else if (isCommand(words, WITHDRAWAL, WITHDRAWAL_WORDS)) {
             withdraw(words[2], words[3], words[4]);
+        } else if (isCommand(words, DEPOSIT, DEPOSIT_WORDS)) {
+            deposit(words[2], words[3], words[4]);
         } else if (isUnavailableOperation(words)) {
             view.showOperationUnavailable();
         } else {
@@ -80,16 +85,22 @@ public final class AtmPresenter {
 
     private void withdraw(String card, String account, String amount) {
         if (ACCOUNT_FORMAT.matcher(account).matches()) {
-            show(withdrawalClient.withdraw(keyGenerator.generate(), card, account, amount));
+            show(withdrawalClient.execute(keyGenerator.generate(), card, account, amount),
+                    view::showWithdrawalSuccess, view::showOperationUnconfirmed);
         } else {
             view.showOperationRejected();
         }
     }
 
-    private void show(WithdrawalResult result) {
+    private void deposit(String card, String cbu, String amount) {
+        show(depositClient.execute(keyGenerator.generate(), card, cbu, amount),
+                view::showDepositSuccess, view::showDepositUnconfirmed);
+    }
+
+    private void show(OperationResult result, Runnable onCompleted, Runnable onUnconfirmed) {
         switch (result) {
             case COMPLETED:
-                view.showWithdrawalSuccess();
+                onCompleted.run();
                 break;
             case REJECTED:
                 view.showOperationRejected();
@@ -104,7 +115,7 @@ public final class AtmPresenter {
                 view.showServiceUnavailable();
                 break;
             default:
-                view.showOperationUnconfirmed();
+                onUnconfirmed.run();
                 break;
         }
     }

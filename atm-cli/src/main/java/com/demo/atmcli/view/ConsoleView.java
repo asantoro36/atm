@@ -81,4 +81,14 @@ public final class ConsoleView implements AtmView {
     public void showOperationUnconfirmed() {
         output.println("No se pudo confirmar la operación. Consulte su saldo");
     }
+
+    @Override
+    public void showDepositSuccess() {
+        output.println("Depósito exitoso");
+    }
+
+    @Override
+    public void showDepositUnconfirmed() {
+        output.println("No se pudo confirmar la operación");
+    }
 }

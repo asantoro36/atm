@@ -159,4 +159,22 @@ class ConsoleViewTest {
 
         assertEquals("No se pudo confirmar la operación. Consulte su saldo" + LINE_BREAK, printedText());
     }
+
+    @Test
+    void showDepositSuccess_whenCalled_thenPrintSuccessMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showDepositSuccess();
+
+        assertEquals("Depósito exitoso" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showDepositUnconfirmed_whenCalled_thenPrintUnconfirmedMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showDepositUnconfirmed();
+
+        assertEquals("No se pudo confirmar la operación" + LINE_BREAK, printedText());
+    }
 }
