@@ -14,8 +14,8 @@ java {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    // Valida sintaxis y API de Java 8 aunque Gradle corra con un JDK mas nuevo
     options.release = 8
+    options.encoding = 'UTF-8'
 }
 
 repositories {
@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -42,6 +43,11 @@ testing {
 
 application {
     mainClass = 'com.demo.atmcli.AtmCliApplication'
+    applicationName = 'atm'
+}
+
+tasks.named('run') {
+    standardInput = System.in
 }
 
 tasks.named('test') {
