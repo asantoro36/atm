@@ -1,12 +1,12 @@
 package com.demo.atmcli.presenter;
 
+import com.demo.atmcli.model.BalanceClient;
+import com.demo.atmcli.model.BalanceResult;
 import com.demo.atmcli.model.IdempotencyKeyGenerator;
 import com.demo.atmcli.model.LoginClient;
 import com.demo.atmcli.model.OperationClient;
 import com.demo.atmcli.model.OperationResult;
 import com.demo.atmcli.view.AtmView;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public final class AtmPresenter {
@@ -19,25 +19,25 @@ public final class AtmPresenter {
     private static final int WITHDRAWAL_WORDS = 5;
     private static final String DEPOSIT = "depositar";
     private static final int DEPOSIT_WORDS = 5;
+    private static final String BALANCE = "saldo";
+    private static final int BALANCE_WORDS = 4;
     private static final Pattern ACCOUNT_FORMAT = Pattern.compile("[0-9]{5}");
-    private static final Map<String, Integer> UNAVAILABLE_OPERATION_WORDS = new HashMap<>();
-
-    static {
-        UNAVAILABLE_OPERATION_WORDS.put("saldo", 4);
-    }
 
     private final AtmView view;
     private final LoginClient loginClient;
     private final OperationClient withdrawalClient;
     private final OperationClient depositClient;
+    private final BalanceClient balanceClient;
     private final IdempotencyKeyGenerator keyGenerator;
 
     public AtmPresenter(AtmView view, LoginClient loginClient, OperationClient withdrawalClient,
-                        OperationClient depositClient, IdempotencyKeyGenerator keyGenerator) {
+                        OperationClient depositClient, BalanceClient balanceClient,
+                        IdempotencyKeyGenerator keyGenerator) {
         this.view = view;
         this.loginClient = loginClient;
         this.withdrawalClient = withdrawalClient;
         this.depositClient = depositClient;
+        this.balanceClient = balanceClient;
         this.keyGenerator = keyGenerator;
     }
 
@@ -58,8 +58,8 @@ public final class AtmPresenter {
             withdraw(words[2], words[3], words[4]);
         } else if (isCommand(words, DEPOSIT, DEPOSIT_WORDS)) {
             deposit(words[2], words[3], words[4]);
-        } else if (isUnavailableOperation(words)) {
-            view.showOperationUnavailable();
+        } else if (isCommand(words, BALANCE, BALANCE_WORDS)) {
+            inquireBalance(words[2], words[3]);
         } else {
             view.showInvalidCommand();
         }
@@ -67,12 +67,6 @@ public final class AtmPresenter {
 
     private boolean isCommand(String[] words, String operation, int expectedWords) {
         return words.length == expectedWords && APPLICATION.equals(words[0]) && operation.equals(words[1]);
-    }
-
-    private boolean isUnavailableOperation(String[] words) {
-        return words.length > 1
-                && APPLICATION.equals(words[0])
-                && Integer.valueOf(words.length).equals(UNAVAILABLE_OPERATION_WORDS.get(words[1]));
     }
 
     private void login(String card) {
@@ -95,6 +89,15 @@ public final class AtmPresenter {
     private void deposit(String card, String cbu, String amount) {
         show(depositClient.execute(keyGenerator.generate(), card, cbu, amount),
                 view::showDepositSuccess, view::showDepositUnconfirmed);
+    }
+
+    private void inquireBalance(String card, String account) {
+        if (ACCOUNT_FORMAT.matcher(account).matches()) {
+            BalanceResult result = balanceClient.inquire(card, account);
+            show(result.getStatus(), () -> view.showBalance(result.getBalance()), view::showServiceUnavailable);
+        } else {
+            view.showOperationRejected();
+        }
     }
 
     private void show(OperationResult result, Runnable onCompleted, Runnable onUnconfirmed) {

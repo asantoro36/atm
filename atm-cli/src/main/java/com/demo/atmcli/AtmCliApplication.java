@@ -1,8 +1,10 @@
 package com.demo.atmcli;
 
 import com.demo.atmcli.model.BackendConfig;
+import com.demo.atmcli.model.BalanceClient;
 import com.demo.atmcli.model.LoginClient;
 import com.demo.atmcli.model.OperationClient;
+import com.demo.atmcli.model.RestBalanceClient;
 import com.demo.atmcli.model.RestDepositClient;
 import com.demo.atmcli.model.RestLoginClient;
 import com.demo.atmcli.model.RestWithdrawalClient;
@@ -22,8 +24,10 @@ public class AtmCliApplication {
         LoginClient loginClient = new RestLoginClient(backendUrl, BackendConfig.TIMEOUT_MILLIS);
         OperationClient withdrawalClient = retrying(new RestWithdrawalClient(backendUrl, BackendConfig.TIMEOUT_MILLIS));
         OperationClient depositClient = retrying(new RestDepositClient(backendUrl, BackendConfig.TIMEOUT_MILLIS));
+        BalanceClient balanceClient = new RestBalanceClient(backendUrl, BackendConfig.TIMEOUT_MILLIS);
         AtmView view = new ConsoleView(new BufferedReader(new InputStreamReader(System.in)), System.out);
-        new AtmPresenter(view, loginClient, withdrawalClient, depositClient, new UuidIdempotencyKeyGenerator()).run();
+        new AtmPresenter(view, loginClient, withdrawalClient, depositClient, balanceClient,
+                new UuidIdempotencyKeyGenerator()).run();
     }
 
     private static OperationClient retrying(OperationClient client) {

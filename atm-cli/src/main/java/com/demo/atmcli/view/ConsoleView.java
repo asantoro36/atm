@@ -48,11 +48,6 @@ public final class ConsoleView implements AtmView {
     }
 
     @Override
-    public void showOperationUnavailable() {
-        output.println("Operación no disponible");
-    }
-
-    @Override
     public void showWithdrawalSuccess() {
         output.println("Retire su dinero");
     }
@@ -90,5 +85,10 @@ public final class ConsoleView implements AtmView {
     @Override
     public void showDepositUnconfirmed() {
         output.println("No se pudo confirmar la operación");
+    }
+
+    @Override
+    public void showBalance(String balance) {
+        output.println("Su saldo es $ " + balance);
     }
 }

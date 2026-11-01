@@ -162,13 +162,4 @@ class AtmPresenterTest {
 
         verify(view, times(2)).showMenu();
     }
-
-    @Test
-    void run_whenOperationIsNotImplemented_thenShowOperationUnavailable() {
-        when(view.readCommand()).thenReturn("atm saldo 1111111111111111 123", EXIT);
-
-        presenter.run();
-
-        verify(view).showOperationUnavailable();
-    }
 }

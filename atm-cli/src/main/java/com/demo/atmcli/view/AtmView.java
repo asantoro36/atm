@@ -12,8 +12,6 @@ public interface AtmView {
 
     void showInvalidCommand();
 
-    void showOperationUnavailable();
-
     void showWithdrawalSuccess();
 
     void showOperationRejected();
@@ -29,4 +27,6 @@ public interface AtmView {
     void showDepositSuccess();
 
     void showDepositUnconfirmed();
+
+    void showBalance(String balance);
 }

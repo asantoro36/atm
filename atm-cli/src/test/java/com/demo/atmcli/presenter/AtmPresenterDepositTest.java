@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.demo.atmcli.model.BalanceClient;
 import com.demo.atmcli.model.IdempotencyKeyGenerator;
 import com.demo.atmcli.model.LoginClient;
 import com.demo.atmcli.model.OperationClient;
@@ -43,13 +44,16 @@ class AtmPresenterDepositTest {
     private OperationClient depositClient;
 
     @Mock
+    private BalanceClient balanceClient;
+
+    @Mock
     private IdempotencyKeyGenerator keyGenerator;
 
     private AtmPresenter presenter;
 
     @BeforeEach
     void setUp() {
-        presenter = new AtmPresenter(view, loginClient, withdrawalClient, depositClient, keyGenerator);
+        presenter = new AtmPresenter(view, loginClient, withdrawalClient, depositClient, balanceClient, keyGenerator);
     }
 
     private void givenResult(OperationResult result) {

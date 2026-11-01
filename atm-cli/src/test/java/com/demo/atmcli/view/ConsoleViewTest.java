@@ -98,12 +98,12 @@ class ConsoleViewTest {
     }
 
     @Test
-    void showOperationUnavailable_whenCalled_thenPrintUnavailableMessage() throws IOException {
+    void showBalance_whenCalled_thenPrintBalanceMessage() throws IOException {
         ConsoleView view = viewReading("");
 
-        view.showOperationUnavailable();
+        view.showBalance("10000,00");
 
-        assertEquals("Operación no disponible" + LINE_BREAK, printedText());
+        assertEquals("Su saldo es $ 10000,00" + LINE_BREAK, printedText());
     }
 
     @Test
