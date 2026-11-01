@@ -24,6 +24,22 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+testing {
+    suites {
+        integrationTest(JvmTestSuite) {
+            useJUnitJupiter(dependencyManagement.importedProperties['junit-jupiter.version'])
+            dependencies {
+                implementation project()
+                implementation 'org.springframework.boot:spring-boot-starter-test'
+            }
+        }
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('check') {
+    dependsOn testing.suites.integrationTest
 }

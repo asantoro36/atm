@@ -23,7 +23,20 @@ repositories {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+testing {
+    suites {
+        integrationTest(JvmTestSuite) {
+            useJUnitJupiter('5.10.2')
+            dependencies {
+                implementation project()
+                implementation 'com.github.tomakehurst:wiremock-jre8:2.35.2'
+            }
+        }
+    }
 }
 
 application {
@@ -32,4 +45,8 @@ application {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('check') {
+    dependsOn testing.suites.integrationTest
 }
