@@ -105,4 +105,58 @@ class ConsoleViewTest {
 
         assertEquals("Operación no disponible" + LINE_BREAK, printedText());
     }
+
+    @Test
+    void showWithdrawalSuccess_whenCalled_thenPrintWithdrawMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showWithdrawalSuccess();
+
+        assertEquals("Retire su dinero" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showOperationRejected_whenCalled_thenPrintRejectedMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showOperationRejected();
+
+        assertEquals("Operación rechazada" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showInvalidAmount_whenCalled_thenPrintInvalidAmountMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showInvalidAmount();
+
+        assertEquals("Importe inválido" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showInsufficientFunds_whenCalled_thenPrintInsufficientFundsMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showInsufficientFunds();
+
+        assertEquals("Saldo insuficiente" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showServiceUnavailable_whenCalled_thenPrintServiceUnavailableMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showServiceUnavailable();
+
+        assertEquals("Servicio no disponible" + LINE_BREAK, printedText());
+    }
+
+    @Test
+    void showOperationUnconfirmed_whenCalled_thenPrintUnconfirmedMessage() throws IOException {
+        ConsoleView view = viewReading("");
+
+        view.showOperationUnconfirmed();
+
+        assertEquals("No se pudo confirmar la operación. Consulte su saldo" + LINE_BREAK, printedText());
+    }
 }

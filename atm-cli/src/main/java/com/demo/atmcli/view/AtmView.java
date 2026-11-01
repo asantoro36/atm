@@ -13,4 +13,16 @@ public interface AtmView {
     void showInvalidCommand();
 
     void showOperationUnavailable();
+
+    void showWithdrawalSuccess();
+
+    void showOperationRejected();
+
+    void showInvalidAmount();
+
+    void showInsufficientFunds();
+
+    void showServiceUnavailable();
+
+    void showOperationUnconfirmed();
 }

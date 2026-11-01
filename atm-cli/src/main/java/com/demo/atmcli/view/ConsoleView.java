@@ -51,4 +51,34 @@ public final class ConsoleView implements AtmView {
     public void showOperationUnavailable() {
         output.println("Operación no disponible");
     }
+
+    @Override
+    public void showWithdrawalSuccess() {
+        output.println("Retire su dinero");
+    }
+
+    @Override
+    public void showOperationRejected() {
+        output.println("Operación rechazada");
+    }
+
+    @Override
+    public void showInvalidAmount() {
+        output.println("Importe inválido");
+    }
+
+    @Override
+    public void showInsufficientFunds() {
+        output.println("Saldo insuficiente");
+    }
+
+    @Override
+    public void showServiceUnavailable() {
+        output.println("Servicio no disponible");
+    }
+
+    @Override
+    public void showOperationUnconfirmed() {
+        output.println("No se pudo confirmar la operación. Consulte su saldo");
+    }
 }

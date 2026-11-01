@@ -129,6 +129,9 @@ class AtmPresenterTest {
             "atm LOGIN 1111111111111111",
             "ATM LOGIN 1111111111111111",
             "atm extraer 1111111111111111",
+            "atm extraer 1111111111111111 00001",
+            "atm extraer 1111111111111111 00001 100 9",
+            "ATM EXTRAER 1111111111111111 00001 100",
             "atm depositar 1111111111111111 123",
             "atm saldo 1111111111111111",
             "atm otro 1111111111111111 123"
@@ -162,7 +165,6 @@ class AtmPresenterTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "atm extraer 1111111111111111 123 100",
             "atm depositar 1111111111111111 456 100",
             "atm saldo 1111111111111111 123"
     })
