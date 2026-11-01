@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'jacoco'
 }
 
 group = 'com.demo'
@@ -47,6 +48,30 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+def coverageData = fileTree(layout.buildDirectory.dir('jacoco')) {
+    include '*.exec'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test'), testing.suites.integrationTest
+    executionData.setFrom(coverageData)
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn tasks.named('test'), testing.suites.integrationTest
+    executionData.setFrom(coverageData)
+    violationRules {
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
 tasks.named('check') {
     dependsOn testing.suites.integrationTest
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }

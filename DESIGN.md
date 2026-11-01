@@ -35,9 +35,11 @@ atm
 ## Tests
 - **División de pruebas:** En los dos proyectos se opto por dividir test de integración y unitarios. 
 - **WireMock en `atm-cli`:** Mockito no levanta un servidor HTTP, y WireMock permite probar el cliente REST real sin escribir un servidor fake.
+- **Cobertura con JaCoCo:** se usa JaCoCo para medir la cobertura de los tests y exigir un mínimo de 80% de cobertura branch.
 
 ## Consideraciones
 - **Tarjeta y cuenta en `saldo`:** aunque el ejercicio contempla una relación 1 a 1, una tarjeta puede tener varias cuentas asociadas (por ejemplo, en pesos y en dólares). Pedir ambas conserva ese modelo de dominio y evita ambigüedad sobre qué cuenta se consulta.
 - **Log de auditoría append-only:** Un registro de eventos al que solo se agregan líneas cubre la spec con una solución simple.
+- **Login fuera de la auditoría:** el log transaccional existe para auditar saldos, y el login no opera sobre ninguna cuenta. A cambio, no queda registro de los intentos de ingreso.
 - **Registro de operaciones rechazadas:** auditar también los intentos fallidos permite reconstruir qué ocurrió, no solo los movimientos que cambiaron un saldo.
 - **Evento obligatorio para mover dinero:** Se prioriza la trazabilidad sobre la disponibilidad.
