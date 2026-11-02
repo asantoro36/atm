@@ -340,6 +340,15 @@ class WithdrawalIT extends OperationITSupport {
     }
 
     @Test
+    void withdraw_whenSuccessEventCannotBeWritten_thenReturnErrorBody() throws Exception {
+        doThrow(auditFailure()).when(auditLog).record(any());
+
+        HttpResponse<String> response = post(ACCOUNT, KEY, VALID_BODY);
+
+        Assertions.assertTrue(response.body().contains("\"status\":500,\"error\":\"Internal Server Error\""));
+    }
+
+    @Test
     void withdraw_whenRetriedAfterAuditFailure_thenComplete() throws Exception {
         doThrow(auditFailure()).doCallRealMethod().when(auditLog).record(any());
         post(ACCOUNT, KEY, VALID_BODY);
