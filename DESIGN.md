@@ -41,23 +41,27 @@ atm
 
 ## Requisitos funcionales
 
-| Requisito | Cómo se cumple |
-|---|---|
-| Identificarse | `atm login <tarjeta>` verifica que la tarjeta exista y esté activa, sin crear una sesión. |
-| Extraer | `atm extraer <tarjeta> <cuenta> <importe>` debita de una cuenta asociada a la tarjeta y rechaza la operación si el saldo no alcanza. |
-| Depositar | `atm depositar <tarjeta> <cbu> <importe>` acredita en la cuenta del CBU, sea o no del dueño de la tarjeta. |
-| Consultar saldo | `atm saldo <tarjeta> <cuenta>` devuelve el saldo de una cuenta asociada a la tarjeta, sin modificarlo. |
-| Entidades | `Card`, `Account` y `CardAccount` modelan Tarjeta, Cuenta y TarjetaCuenta. |
-| Consumo por HTTP | `atm-cli` llama a `atm-backend` en cada operación. |
+
+| Requisito        | Cómo se cumple                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Identificarse    | `atm login <tarjeta>` verifica que la tarjeta exista y esté activa, sin crear una sesión.                                            |
+| Extraer          | `atm extraer <tarjeta> <cuenta> <importe>` debita de una cuenta asociada a la tarjeta y rechaza la operación si el saldo no alcanza. |
+| Depositar        | `atm depositar <tarjeta> <cbu> <importe>` acredita en la cuenta del CBU, sea o no del dueño de la tarjeta.                           |
+| Consultar saldo  | `atm saldo <tarjeta> <cuenta>` devuelve el saldo de una cuenta asociada a la tarjeta, sin modificarlo.                               |
+| Entidades        | `Card`, `Account` y `CardAccount` modelan Tarjeta, Cuenta y TarjetaCuenta.                                                           |
+| Consumo por HTTP | `atm-cli` llama a `atm-backend` en cada operación.                                                                                   |
+
 
 ## Requisitos no funcionales
 
-| Requisito | Cómo se cumple |
-|---|---|
-| Trazabilidad | Cada extracción, depósito y consulta procesados dejan un evento con su `transactionId`, incluso si se rechazan. |
-| Auditoría de saldos | El log registra fecha, tipo, resultado, motivo, cuenta e importe, con la tarjeta enmascarada. |
-| Log en archivo de texto | Los eventos se agregan a un archivo JSON Lines, forzado a disco en cada escritura. |
-| Servicio crítico | Los reintentos, la idempotencia y los locks por cuenta protegen los saldos ante fallos de red y concurrencia, sin ofrecer alta disponibilidad. |
+
+| Requisito               | Cómo se cumple                                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trazabilidad            | Cada extracción, depósito y consulta procesados dejan un evento con su `transactionId`, incluso si se rechazan.                                |
+| Auditoría de saldos     | El log registra fecha, tipo, resultado, motivo, cuenta e importe, con la tarjeta enmascarada.                                                  |
+| Log en archivo de texto | Los eventos se agregan a un archivo JSON Lines, forzado a disco en cada escritura.                                                             |
+| Servicio crítico        | Los reintentos, la idempotencia y los locks por cuenta protegen los saldos ante fallos de red y concurrencia, sin ofrecer alta disponibilidad. |
+
 
 ## Concesiones por falta de especificación
 
@@ -88,3 +92,8 @@ atm
 - **Crecimiento:** las claves y los locks en memoria nunca se liberan, y el archivo de auditoría no rota.
 - **Seguridad:** la tarjeta es la única credencial y viaja por HTTP sin cifrar, algo aceptable solo porque el servicio corre en localhost.
 - **URL del backend:** la CLI todavía no valida `ATM_BACKEND_URL`.
+
+## Faltantes
+
+- **Reversa de la extracción:** La extracción y el desposito no hacen una reversa de la operación si falla 
+- **Nro de operación:** No se está devolviendo un número de operación para que el usuario pueda identificarla. Si se crea un transactionId. 
