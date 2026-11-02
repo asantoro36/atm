@@ -9,11 +9,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.demo.atmcli.model.RestWithdrawalClient;
-import com.demo.atmcli.model.RetryingOperationClient;
-import com.demo.atmcli.model.ThreadWaiter;
-import com.demo.atmcli.model.OperationClient;
-import com.demo.atmcli.model.OperationResult;
+import com.demo.atmcli.model.client.OperationClient;
+import com.demo.atmcli.model.client.OperationResult;
+import com.demo.atmcli.model.rest.RestWithdrawalClient;
+import com.demo.atmcli.model.retry.RetryingOperationClient;
+import com.demo.atmcli.model.retry.ThreadWaiter;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;

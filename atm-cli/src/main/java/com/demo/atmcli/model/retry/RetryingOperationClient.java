@@ -1,4 +1,7 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.retry;
+
+import com.demo.atmcli.model.client.OperationClient;
+import com.demo.atmcli.model.client.OperationResult;
 
 public final class RetryingOperationClient implements OperationClient {
 

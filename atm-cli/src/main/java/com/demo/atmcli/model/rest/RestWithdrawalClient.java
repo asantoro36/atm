@@ -1,4 +1,6 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
+
+import com.demo.atmcli.model.client.OperationResult;
 
 public final class RestWithdrawalClient extends RestOperationClient {
 

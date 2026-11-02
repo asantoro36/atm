@@ -6,7 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.demo.atmcli.model.LoginClient;
+import com.demo.atmcli.model.client.LoginClient;
 import com.demo.atmcli.view.AtmView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

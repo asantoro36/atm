@@ -1,10 +1,10 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
-final class LoginRequest {
+final class BalanceInquiryRequest {
 
     private final String card;
 
-    LoginRequest(String card) {
+    BalanceInquiryRequest(String card) {
         this.card = card;
     }
 

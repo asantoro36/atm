@@ -1,4 +1,4 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.retry;
 
 public final class ThreadWaiter implements Waiter {
 

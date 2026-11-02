@@ -1,4 +1,4 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

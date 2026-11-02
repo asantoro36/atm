@@ -9,9 +9,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.demo.atmcli.model.BalanceResult;
-import com.demo.atmcli.model.OperationResult;
-import com.demo.atmcli.model.RestBalanceClient;
+import com.demo.atmcli.model.client.BalanceResult;
+import com.demo.atmcli.model.client.OperationResult;
+import com.demo.atmcli.model.rest.RestBalanceClient;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import org.junit.jupiter.api.AfterEach;

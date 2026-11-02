@@ -1,4 +1,4 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
 public final class RestDepositClient extends RestOperationClient {
 

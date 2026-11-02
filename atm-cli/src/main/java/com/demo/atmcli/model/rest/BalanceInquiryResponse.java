@@ -1,4 +1,4 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
 final class BalanceInquiryResponse {
 

@@ -1,4 +1,4 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
 import com.google.gson.Gson;
 import java.io.ByteArrayOutputStream;

@@ -6,11 +6,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.demo.atmcli.model.BalanceClient;
-import com.demo.atmcli.model.IdempotencyKeyGenerator;
-import com.demo.atmcli.model.LoginClient;
-import com.demo.atmcli.model.OperationClient;
-import com.demo.atmcli.model.OperationResult;
+import com.demo.atmcli.model.client.BalanceClient;
+import com.demo.atmcli.model.client.LoginClient;
+import com.demo.atmcli.model.client.OperationClient;
+import com.demo.atmcli.model.client.OperationResult;
+import com.demo.atmcli.model.idempotency.IdempotencyKeyGenerator;
 import com.demo.atmcli.view.AtmView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

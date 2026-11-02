@@ -1,5 +1,6 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
+import com.demo.atmcli.model.client.LoginClient;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collections;

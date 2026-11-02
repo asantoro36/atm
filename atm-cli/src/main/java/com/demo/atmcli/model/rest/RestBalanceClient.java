@@ -1,5 +1,7 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
+import com.demo.atmcli.model.client.BalanceClient;
+import com.demo.atmcli.model.client.BalanceResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import java.io.IOException;

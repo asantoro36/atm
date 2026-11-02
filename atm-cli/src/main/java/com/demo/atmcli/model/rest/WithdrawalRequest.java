@@ -1,23 +1,17 @@
-package com.demo.atmcli.model;
+package com.demo.atmcli.model.rest;
 
-final class DepositRequest {
+final class WithdrawalRequest {
 
     private final String card;
-    private final String cbu;
     private final String amount;
 
-    DepositRequest(String card, String cbu, String amount) {
+    WithdrawalRequest(String card, String amount) {
         this.card = card;
-        this.cbu = cbu;
         this.amount = amount;
     }
 
     String getCard() {
         return card;
-    }
-
-    String getCbu() {
-        return cbu;
     }
 
     String getAmount() {

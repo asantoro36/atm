@@ -1,16 +1,16 @@
 package com.demo.atmcli;
 
-import com.demo.atmcli.model.BackendConfig;
-import com.demo.atmcli.model.BalanceClient;
-import com.demo.atmcli.model.LoginClient;
-import com.demo.atmcli.model.OperationClient;
-import com.demo.atmcli.model.RestBalanceClient;
-import com.demo.atmcli.model.RestDepositClient;
-import com.demo.atmcli.model.RestLoginClient;
-import com.demo.atmcli.model.RestWithdrawalClient;
-import com.demo.atmcli.model.RetryingOperationClient;
-import com.demo.atmcli.model.ThreadWaiter;
-import com.demo.atmcli.model.UuidIdempotencyKeyGenerator;
+import com.demo.atmcli.model.client.BalanceClient;
+import com.demo.atmcli.model.client.LoginClient;
+import com.demo.atmcli.model.client.OperationClient;
+import com.demo.atmcli.model.config.BackendConfig;
+import com.demo.atmcli.model.idempotency.UuidIdempotencyKeyGenerator;
+import com.demo.atmcli.model.rest.RestBalanceClient;
+import com.demo.atmcli.model.rest.RestDepositClient;
+import com.demo.atmcli.model.rest.RestLoginClient;
+import com.demo.atmcli.model.rest.RestWithdrawalClient;
+import com.demo.atmcli.model.retry.RetryingOperationClient;
+import com.demo.atmcli.model.retry.ThreadWaiter;
 import com.demo.atmcli.presenter.AtmPresenter;
 import com.demo.atmcli.view.AtmView;
 import com.demo.atmcli.view.ConsoleView;
